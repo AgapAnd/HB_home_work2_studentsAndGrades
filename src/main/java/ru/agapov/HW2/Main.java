@@ -48,17 +48,15 @@ public class Main {
                         Map<String, Integer> grades = new HashMap<>();
                         line = scanner.nextLine();
 
-                        if (line.equals(""))
+                        if (line.equals("")) {
                             line = scanner.nextLine();
+                        }
 
                         if (line.contains("name:")) {
                             name = scanner.nextLine();
                             scanner.nextLine();
 
-                            String[] temp = scanner.nextLine().split(" ");
-                            grades.put("Программирование", Integer.valueOf(temp[0]));
-                            grades.put("Системный анализ", Integer.valueOf(temp[1]));
-                            grades.put("Алгоритмы и структуры данных", Integer.valueOf(temp[2]));
+                            grades = addGrades(scanner); // вызываем метод добавления оценок и передаём сканер файла
                         }
 
                         students.add(new Student(name, grades));
@@ -154,13 +152,28 @@ public class Main {
         System.out.println("Укажите оценки для каждого из предметов в строчку через пробел" +
                 "(программирование, системный анализ, Алгоритмы и структуры данных):");
         Scanner scan = new Scanner(System.in);
-        String[] gradeArray = scan.nextLine().split(" ");
+        Map<String, Integer> grades = addGrades(scan);
+
+        student.setGrades(grades); // вызываем метод добавления оценок и передаём сканер ввод из консоли
+    }
+
+    private static Map<String, Integer> addGrades(Scanner scan) {
         Map<String, Integer> grades = new HashMap<>();
+        String[] gradeArray;
+
+        while (true) {
+            gradeArray = scan.nextLine().split(" ");
+            if (gradeArray.length != 3) {
+                System.out.println("Неверный формат данных, введите заново");
+            } else
+                break;
+        }
+
         grades.put("Программирование", Integer.valueOf(gradeArray[0]));
         grades.put("Системный анализ", Integer.valueOf(gradeArray[1]));
         grades.put("Алгоритмы и структуры данных", Integer.valueOf(gradeArray[2]));
 
-        student.setGrades(grades);
+        return grades;
     }
 
     public static void addStudent() {

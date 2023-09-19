@@ -1,35 +1,81 @@
 package ru.agapov.HW2;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class Main {
 
-    public static List<Student> students = new ArrayList<>();
+    private final static Set<Student> students = new HashSet<>();
+    private final static File inputFile = new File("files/input_grades.txt");
+    private final static File outputFile = new File("files/output_grades.txt");
+
     public static void main(String[] args) {
-//        addFromFile();
         menu();
     }
 
-    private static void addFromFile() {
-        System.out.println("Хотите загрузить данные из файла? (y/n)");
-        Scanner scan = new Scanner(System.in);
-        String answer = scan.nextLine();
-        if (answer.equals("y")) {
-            try {
-                FileInputStream fis = new FileInputStream("files/grades.txt");
 
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
+    private static void saveToFile() {
+        try (FileWriter writer = new FileWriter(outputFile)) {
+            for (Student each : students) {
+                writer.write("name:\n" + each.getName() + "\ngrades:\n");
+                for (Map.Entry<String, Integer> grade : each.getGrades().entrySet()) {
+                    writer.write(grade.getValue() + " ");
+                }
+                writer.write("\n\n");
             }
-
         }
-        else {
-            if (answer.equals("n"))
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static void addFromFile() {
+        while (true) {
+            System.out.println("Хотите загрузить данные из файла? (y/n)");
+            Scanner scan = new Scanner(System.in);
+            String answer = scan.nextLine();
+            if (answer.equals("y")) {
+                try (FileReader reader = new FileReader(inputFile)) {
+                    Scanner scanner = new Scanner(reader);
+                    String line;
+                    while (scanner.hasNextLine()) {
+                        String name = "";
+                        Map<String, Integer> grades = new HashMap<>();
+                        line = scanner.nextLine();
+
+                        if (line.equals(""))
+                            line = scanner.nextLine();
+
+                        if (line.contains("name:")) {
+                            name = scanner.nextLine();
+                            scanner.nextLine();
+
+                            String[] temp = scanner.nextLine().split(" ");
+                            grades.put("Программирование", Integer.valueOf(temp[0]));
+                            grades.put("Системный анализ", Integer.valueOf(temp[1]));
+                            grades.put("Алгоритмы и структуры данных", Integer.valueOf(temp[2]));
+                        }
+
+                        students.add(new Student(name, grades));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("Были добавлены следующие ученики:");
+                students.forEach(System.out::println);
                 return;
-            else {
-                System.out.println("Введите корректный ответ");
+
+            } else {
+                if (answer.equals("n"))
+                    return;
+                else {
+                    System.out.println("Введите корректный ответ");
+                }
             }
         }
 
@@ -41,12 +87,15 @@ public class Main {
         while (!exit) {
             System.out.println("* * * * * * * * * * *\n" +
                     "Выберите действие:" +
+                    "\n0. Завершить программу" +
                     "\n1. Создать нового ученика" +
                     "\n2. Удалить ученика" +
                     "\n3. Обновить оценки ученика" +
                     "\n4. Просмотр оценок всех учащихся" +
-                    "\n5. Просмотр оценок конкретного учащегося");
-            System.out.println("\nСделайте выбор от 1 до 5 (для выхода из программы введите 0)");
+                    "\n5. Просмотр оценок конкретного учащегося" +
+                    "\n6. Загрузить данные из файла" +
+                    "\n7. Выгрузить данные в файл");
+            System.out.println("\nСделайте выбор");
             Scanner scan = new Scanner(System.in);
             try {
                 int choice = scan.nextInt();
@@ -69,15 +118,21 @@ public class Main {
                     case 0:
                         exit = true;
                         break;
+                    case 6:
+                        addFromFile();
+                        break;
+                    case 7:
+                        saveToFile();
+                        break;
                 }
             } catch (Exception e) {
-                System.out.println("Необходимо ввести только цифру от 1 до 5");
+                System.out.println("Необходимо ввести цифру от 1 до 7");
             }
         }
     }
 
     private static void showGradesOfStudent() {
-        System.out.println("Введите имя ученика, данные о котором вы хотите посмотреть:");
+        System.out.println("Чьи данные вы хотите посмотреть?");
         System.out.println(findStudentByName());
     }
 
@@ -90,16 +145,20 @@ public class Main {
     }
 
     private static void updateGradesOfStudent() {
-        System.out.println("Введите имя ученика, оценки которого вы хотите обновить:");
+        if (students.isEmpty()) {
+            System.out.println("Ещё нет ни одного добавленного ученика");
+            return;
+        }
+        System.out.println("Чьи оценки вы хотите обновить?");
         Student student = findStudentByName();
         System.out.println("Укажите оценки для каждого из предметов в строчку через пробел" +
-                "(программирование, системный анализ, Алгоритмы и анализ данных):");
+                "(программирование, системный анализ, Алгоритмы и структуры данных):");
         Scanner scan = new Scanner(System.in);
         String[] gradeArray = scan.nextLine().split(" ");
         Map<String, Integer> grades = new HashMap<>();
         grades.put("Программирование", Integer.valueOf(gradeArray[0]));
         grades.put("Системный анализ", Integer.valueOf(gradeArray[1]));
-        grades.put("Алгоритмы и анализ данных", Integer.valueOf(gradeArray[2]));
+        grades.put("Алгоритмы и структуры данных", Integer.valueOf(gradeArray[2]));
 
         student.setGrades(grades);
     }
@@ -111,20 +170,25 @@ public class Main {
 
     }
     public static void deleteStudent() {
-        System.out.println("Введите имя ученика, которого вы хотите убрать из списка:");
+        System.out.println("Кого вы хотите убрать из списка?");
         Student student = findStudentByName();
 
-        if (student != null) {
-            students.remove(student);
-        } else {
-            System.out.println("Такого студента нет в списках");
-        }
+        students.remove(student);
     }
 
         public static Student findStudentByName() {
             Scanner scan = new Scanner(System.in);
-            String name = scan.nextLine();
-            return students.stream().filter(s -> s.getName().equals(name)).findFirst().orElse(null);
+            Student student;
+            while (true) {
+                System.out.println("Введите имя ученика:");
+                String name  = scan.nextLine();
+                student = students.stream().filter(s -> s.getName().equals(name)).findFirst().orElse(null);
+                if (student != null)
+                    return student;
+                else {
+                    System.out.println("Такого ученика нет в списке, попробуйте ввести другое имя");
+                }
+            }
         }
 
 }

@@ -130,23 +130,23 @@ public class Main {
     }
 
     private static void showGradesOfStudent() {
+        if (listOfStudentsIsEmpty())
+            return;
         System.out.println("Чьи данные вы хотите посмотреть?");
         System.out.println(findStudentByName());
     }
 
     private static void showGradesOfAllStudents() {
+        if (listOfStudentsIsEmpty())
+            return;
         System.out.println("Данные по всем участникам:");
-        if (students.isEmpty())
-            System.out.println("Ещё нет ни одного добавленного ученика");
         for (Student each : students)
             System.out.println(each);
     }
 
     private static void updateGradesOfStudent() {
-        if (students.isEmpty()) {
-            System.out.println("Ещё нет ни одного добавленного ученика");
+        if (listOfStudentsIsEmpty())
             return;
-        }
         System.out.println("Чьи оценки вы хотите обновить?");
         Student student = findStudentByName();
         System.out.println("Укажите оценки для каждого из предметов в строчку через пробел" +
@@ -183,6 +183,8 @@ public class Main {
 
     }
     public static void deleteStudent() {
+        if (listOfStudentsIsEmpty())
+            return;
         System.out.println("Кого вы хотите убрать из списка?");
         Student student = findStudentByName();
 
@@ -202,6 +204,15 @@ public class Main {
                     System.out.println("Такого ученика нет в списке, попробуйте ввести другое имя");
                 }
             }
+        }
+
+        public static boolean listOfStudentsIsEmpty() {
+            if (students.isEmpty()) {
+                System.out.println("Ещё нет ни одного добавленного ученика");
+                return true;
+            }
+            else
+                return false;
         }
 
 }
